@@ -27,7 +27,7 @@
  * online backup system.
  */
 
-#include "Lyraz330.h"
+#include "lyraz330.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
