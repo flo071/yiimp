@@ -299,7 +299,29 @@ void coinbase_create(YAAMP_COIND *coind, YAAMP_JOB_TEMPLATE *templ, json_value *
 		//debuglog("%s %d dests %s\n", coind->symbol, npayees, script_dests);
 		return;
 	}
+	else if(strcmp(coind->symbol, "NOR") == 0)
+	{
+		char noirnode_payee[128] = { 0 }; // noirnode_payee is an array
+		char script_payee[1024]; // variable for dev addresses
+		json_int_t dev_amount = 20000000; //fixed dev fees
+		json_value* masternode = json_get_object(json_result, "noirnode");//get noirnode info
+		const char *payee = json_get_string(masternode, "payee");//get noirnode payment address
+		json_int_t amount = json_get_int(masternode, "amount");//get noirnode amount
+		json_int_t miner = json_get_int(json_result, "coinbasevalue");//get miner reward
+		strcat(templ->coinb2, "04");// 4 outputs (nulldata  + dev fees + noirnode + miner )
+		job_pack_tx(coind, templ->coinb2, available, NULL); //NULL
+		base58_decode("ZL2juii5Y6z9Fnsd9Y1dRRvFC33CR9aDj8", script_payee);//first dev fee
+		job_pack_tx(coind, templ->coinb2, dev_amount/2, script_payee);//dev fee 0.1 NOR
+		base58_decode("ZU3KK4pYsE5sqJo9zDwyoup1wpzUe5HT9H", script_payee);//second dev fee
+		job_pack_tx(coind, templ->coinb2, dev_amount/2, script_payee);//dev fee 0.1 NOR
+		base58_decode(payee, noirnode_payee);//decode noirnode address
+		job_pack_tx(coind, templ->coinb2, amount, noirnode_payee);//pay noirnode
+		strcat(templ->coinb2, "00000000"); // locktime
 
+		coind->reward = (double)available/100000000*coind->reward_mul;
+		return;
+		
+	}
 	else if(strcmp(coind->symbol, "ENT") == 0)
 	{
 		char script_dests[2048] = { 0 };
